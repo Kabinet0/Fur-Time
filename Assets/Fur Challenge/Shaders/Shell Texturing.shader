@@ -91,6 +91,7 @@ Shader "Kabinet/ShellTexturing"
             {
                 // Convenience Variables
                 float heightAttenuation = (float)_ShellIndex / (float)_ShellCount;
+                //float lowerHeightAttenuation = (float)(_ShellIndex - 1) / (float)_ShellCount;
 
                 float2 startingCoords = IN.uv * uint(_Density);
                 float hashValue = hash(floor(startingCoords));
@@ -123,18 +124,21 @@ Shader "Kabinet/ShellTexturing"
                 float2 RayBias = 0.001f * dirSign;
 
                 int2 tileCoords = floor(startingCoords);
-                float2 dT = ((float2)(tileCoords + dirSign) - startingCoords) / viewRayTS.xy;
+                float2 dT = ((float2)(tileCoords + tileOffset) - startingCoords) / viewRayTS.xy;
                 float2 ddT = dirSign / viewRayTS.xy;
                 float t = 0;
                 
-                outputColor = float4(heightAttenuation, 0, 0, 1);
-
-                if (hashValue < heightAttenuation) {
-                    //startingCoords += hashOffset.xy * 0.25;
+                //outputColor = float4(heightAttenuation, 0, 0, 1);
+                
+                if (hashValue < heightAttenuation) { // Less than minimum height at given pixel
                     
-                    int maxRaycastDistance = 2;
+
+                    int maxRaycastDistance = 1;
                     bool RaycastHit = false;
                     for (int i = 0; i < maxRaycastDistance; i++) {
+                        
+
+
                         if (dT.x < dT.y) {
                             t += dT.x;
 
@@ -149,12 +153,22 @@ Shader "Kabinet/ShellTexturing"
                         }
 
                         hashValue = hash(startingCoords + viewRayTS.xy * t + RayBias);
-                        if (!(hashValue < heightAttenuation)) {
+
+                        hashValue += viewRayTS.z * t * _ShellExtent - RayBias;
+                        float hitHeightAttenuation = heightAttenuation + (viewRayTS.z * t * _ShellExtent);
+                        if (hashValue > heightAttenuation) {
+                            //outputColor = _ShellColor * hitHeightAttenuation;
+                            RaycastHit = true;
                             break;
+                            
                         }
-                        else {
-                            outputColor = float4(0, 0, 1, 1);
-                        }
+                        //else {
+                        //    outputColor = float4(0, 0, 1, 1);
+                        //}
+                    }
+
+                    if (!RaycastHit) {
+                        discard;
                     }
 
 
