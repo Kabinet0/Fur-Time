@@ -123,8 +123,9 @@ Shader "Kabinet/ShellTexturing"
                 }
                 float2 RayBias = 0.001f * dirSign;
 
+                float2 currCoords = startingCoords;
                 int2 tileCoords = floor(startingCoords);
-                float2 dT = ((float2)(tileCoords + tileOffset) - startingCoords) / viewRayTS.xy;
+                float2 dT;
                 float2 ddT = dirSign / viewRayTS.xy;
                 float t = 0;
                 
@@ -133,28 +134,30 @@ Shader "Kabinet/ShellTexturing"
                 if (hashValue < heightAttenuation) { // Less than minimum height at given pixel
                     
 
-                    int maxRaycastDistance = 1;
+                    int maxRaycastDistance = 4;
                     bool RaycastHit = false;
                     for (int i = 0; i < maxRaycastDistance; i++) {
-                        
+                        dT = ((float2)(tileCoords + tileOffset) - currCoords) / viewRayTS.xy;
 
 
                         if (dT.x < dT.y) {
                             t += dT.x;
 
-                            dT.x = ddT.x;
-                            dT.y -= dT.x;
+                            tileCoords.x += dirSign.x;
                         }
                         else {
                             t += dT.y;
 
-                            dT.x -= dT.y;
-                            dT.y = ddT.y;
+                            tileCoords.y += dirSign.y;
                         }
+
+                        currCoords += viewRayTS.xy * t;
+
+
 
                         hashValue = hash(startingCoords + viewRayTS.xy * t + RayBias);
 
-                        hashValue += viewRayTS.z * t * _ShellExtent - RayBias;
+                        //hashValue += viewRayTS.z * t * _ShellExtent - RayBias;
                         float hitHeightAttenuation = heightAttenuation + (viewRayTS.z * t * _ShellExtent);
                         if (hashValue > heightAttenuation) {
                             //outputColor = _ShellColor * hitHeightAttenuation;
