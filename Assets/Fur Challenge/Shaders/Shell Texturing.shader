@@ -107,17 +107,20 @@ Shader "Kabinet/ShellTexturing"
                 // Is this even tangent space?
                 float3 viewRayTS = -float3(dot(IN.tangentWS, viewDirWS), dot(IN.bitangentWS, viewDirWS), dot(IN.normalWS, viewDirWS)) * facing;
                 viewRayTS = normalize(viewRayTS);
-                float RayBias = 0.1f;
 
                 // Algorithm from https://theshoemaker.de/posts/ray-casting-in-2d-grids
                 // Thanks :D
                 float2 dirSign = float2(1, 1);
+                float2 tileOffset = float2(1, 1);
                 if (viewRayTS.x < 0) {
                     dirSign.x = -1;
+                    tileOffset.x = 0;
                 }
                 if (viewRayTS.y < 0) {
                     dirSign.y = -1;
+                    tileOffset.y = 0;
                 }
+                float2 RayBias = 0.001f * dirSign;
 
                 int2 tileCoords = floor(startingCoords);
                 float2 dT = ((float2)(tileCoords + dirSign) - startingCoords) / viewRayTS.xy;
@@ -129,11 +132,11 @@ Shader "Kabinet/ShellTexturing"
                 if (hashValue < heightAttenuation) {
                     //startingCoords += hashOffset.xy * 0.25;
                     
-                    int maxRaycastDistance = 1;
+                    int maxRaycastDistance = 2;
                     bool RaycastHit = false;
                     for (int i = 0; i < maxRaycastDistance; i++) {
                         if (dT.x < dT.y) {
-                            t += dT.y;
+                            t += dT.x;
 
                             dT.x = ddT.x;
                             dT.y -= dT.x;
@@ -145,16 +148,18 @@ Shader "Kabinet/ShellTexturing"
                             dT.y = ddT.y;
                         }
 
-                        hashValue = hash(startingCoords + viewRayTS.xy * t);
-                        if (hashValue < heightAttenuation) {
-                            outputColor = float4(0, 0, 1, 1);
+                        hashValue = hash(startingCoords + viewRayTS.xy * t + RayBias);
+                        if (!(hashValue < heightAttenuation)) {
                             break;
+                        }
+                        else {
+                            outputColor = float4(0, 0, 1, 1);
                         }
                     }
 
 
 
-
+                    
 
                     
                     //float HeightTest = heightAttenuation + viewRayTS.z * fresnelEffect;
