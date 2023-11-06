@@ -96,13 +96,13 @@ Shader "Kabinet/ShellTexturing"
                 float2 startingCoords = IN.uv * uint(_Density);
                 float hashValue = hash(floor(startingCoords));
 
-                
-
-                half4 outputColor = _ShellColor * heightAttenuation;
-
                 half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
                 float fresnelEffect = (1 - dot(viewDirWS, IN.normalWS));
 
+                float4 outputColor = _ShellColor * heightAttenuation;
+                //outputColor = float4(IN.positionWS.xy, 0, 1);
+                
+                
 
 
                 // Is this even tangent space?
@@ -132,9 +132,9 @@ Shader "Kabinet/ShellTexturing"
                 //outputColor = float4(heightAttenuation, 0, 0, 1);
                 
                 if (hashValue < heightAttenuation) { // Less than minimum height at given pixel
-                    
+                    //discard;
 
-                    int maxRaycastDistance = 4;
+                    int maxRaycastDistance = 3;
                     bool RaycastHit = false;
                     for (int i = 0; i < maxRaycastDistance; i++) {
                         dT = ((float2)(tileCoords + tileOffset) - currCoords) / viewRayTS.xy;
@@ -157,31 +157,27 @@ Shader "Kabinet/ShellTexturing"
 
                         hashValue = hash(startingCoords + viewRayTS.xy * t + RayBias);
 
-                        //hashValue += viewRayTS.z * t * _ShellExtent - RayBias;
-                        float hitHeightAttenuation = heightAttenuation + (viewRayTS.z * t * _ShellExtent);
-                        if (hashValue > heightAttenuation) {
-                            //outputColor = _ShellColor * hitHeightAttenuation;
-                            RaycastHit = true;
+                        
+                        
+                        if (hashValue >= heightAttenuation) { // Ray hit something taller than this pixel's minimum height
+                            
+
+                            float hitHeight = ceil(hashValue) + (((viewRayTS.z * t) / _Density * 40) / _ShellExtent - RayBias);
+                            //outputColor = float4(hitHeight, 0, 0, 1);
+                            if (hitHeight > heightAttenuation) {
+                                RaycastHit = true;
+                                //outputColor = float4(0, 1, 0, 1);
+                            }
+                            
                             break;
                             
                         }
-                        //else {
-                        //    outputColor = float4(0, 0, 1, 1);
-                        //}
                     }
 
                     if (!RaycastHit) {
+                        //outputColor = float4(0, 0, 1, 1);
                         discard;
                     }
-
-
-
-                    
-
-                    
-                    //float HeightTest = heightAttenuation + viewRayTS.z * fresnelEffect;
-
-                    
                 }
 
                 return outputColor;
