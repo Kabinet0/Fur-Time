@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 222268662}
   - component: {fileID: 222268661}
   m_Layer: 0
-  m_Name: 'Shell Texturing '
+  m_Name: Grassy Shell Texturing
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -155,10 +155,11 @@ MonoBehaviour:
   ShellMesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
   ShellShader: {fileID: 4800000, guid: 61b472efcbecf1744aef9643c9715640, type: 3}
   LiveUpdate: 1
-  ShellCount: 20
-  Density: 400
+  ShellCount: 10
+  Density: 5
   ShellExtent: 0.1
   ShellColor: {r: 0.6039216, g: 1, b: 0.44705883, a: 0}
+  ShellOcclusionColor: {r: 0.4716981, g: 0.4716981, b: 0.4716981, a: 0}
 --- !u!4 &222268662
 Transform:
   m_ObjectHideFlags: 0
@@ -169,7 +170,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 4, y: 1, z: 4}
+  m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -688,6 +689,58 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 916384059}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1103239823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1103239825}
+  - component: {fileID: 1103239824}
+  m_Layer: 0
+  m_Name: Fur Shell Texturing
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1103239824
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103239823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e127c68bcbad7d547a45ca089e458671, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ShellMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  ShellShader: {fileID: 4800000, guid: 23b56624cd47d7346897f75b5c0e3e6d, type: 3}
+  LiveUpdate: 1
+  ShellCount: 30
+  Density: 100
+  ShellExtent: 0.1
+  ShellColor: {r: 0.3915094, g: 1, b: 0.51350003, a: 0}
+  ShellOcclusionColor: {r: 0, g: 0, b: 0, a: 0}
+--- !u!4 &1103239825
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103239823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 19.25, y: 3.75, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1311430580
 GameObject:
   m_ObjectHideFlags: 0
@@ -836,3 +889,4 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1500353919}
   - {fileID: 222268662}
+  - {fileID: 1103239825}

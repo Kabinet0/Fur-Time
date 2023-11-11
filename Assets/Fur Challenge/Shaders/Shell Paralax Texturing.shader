@@ -1,4 +1,4 @@
-Shader "Kabinet/ShellTexturing"
+Shader "Kabinet/ShellParalaxTexturing"
 {
     // The SubShader block containing the Shader code.
     SubShader
@@ -56,8 +56,8 @@ Shader "Kabinet/ShellTexturing"
                 float3 positionWS   : TEXCOORD2;
                 float2 uv           : TEXCOORD0;
                 float3 normalWS     : TEXCOORD1;
-                //float3 tangentWS    : TEXCOORD3;
-                //float3 bitangentWS  : TEXCOORD4;
+                float3 tangentWS    : TEXCOORD3;
+                float3 bitangentWS  : TEXCOORD4;
             };
 
             Varyings vert(Attributes IN)
@@ -80,8 +80,8 @@ Shader "Kabinet/ShellTexturing"
                 VertexNormalInputs normalInputs = GetVertexNormalInputs(IN.normalOS, IN.tangentOS);
 
                 OUT.normalWS = normalize(normalInputs.normalWS);
-                //OUT.tangentWS = normalize(normalInputs.tangentWS);
-                //OUT.bitangentWS = normalize(normalInputs.bitangentWS);
+                OUT.tangentWS = normalize(normalInputs.tangentWS);
+                OUT.bitangentWS = normalize(normalInputs.bitangentWS);
 
                 OUT.uv = IN.uv;
 
@@ -92,48 +92,22 @@ Shader "Kabinet/ShellTexturing"
                 return (val - start) / (end - start);
             }
 
-            // Good article: https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/
+            // Good article https://catlikecoding.com/unity/tutorials/advanced-rendering/triplanar-mapping/
             float3 GetTriplanarWeights(float3 normal) {
                 float3 triW = pow(abs(normal), 0.5);
                 return triW / dot(triW, 1.0);
             }
 
-            struct TriplanarUV {
-                float2 x, y, z;
-            };
-
-
-            TriplanarUV GetTriplanarUV(float3 position) {
-                TriplanarUV uv;
-
-                uv.x = position.zy;
-                uv.y = position.xz;
-                uv.z = position.xy;
-
-                return uv;
-            }
-
-            float getTriplanarHash(float3 position, float3 normal) {
+            float2 getTriplanarCoordinate(float3 position, float3 normal) {
                 float3 Weights = GetTriplanarWeights(normal);
-                Weights = abs(Weights);
+                //float3 internalPos = abs(position);
 
-                TriplanarUV TriUV = GetTriplanarUV(position);
                 
-                float3 HashResults = float3(
-                    hash(floor(TriUV.x * uint(_Density))),
-                    hash(floor(TriUV.y * uint(_Density))),
-                    hash(floor(TriUV.z * uint(_Density)))
-                );
+                
 
-                return HashResults.x * Weights.x +
-                    HashResults.y * Weights.y +
-                    HashResults.z * Weights.z;
-
-                //return TriUV.x * Weights.x +
-                //    TriUV.y * Weights.y +
-                //    TriUV.z * Weights.z;
-
-                //return (HashResults.x + HashResults.y + HashResults.z) / 3;
+                return position.zy * Weights.x +
+                    position.xz * Weights.y +
+                    position.xy * Weights.z;
             }
 
             // The fragment shader definition.
@@ -143,8 +117,8 @@ Shader "Kabinet/ShellTexturing"
                 float heightAttenuation = (float)_ShellIndex / (float)_ShellCount;
                 float lowerShellAttenuation = saturate((float)(_ShellIndex - 1) / (float)_ShellCount);
 
-                // startingCoords = getTriplanarCoordinate();
-                float hashValue = getTriplanarHash(IN.positionWS, IN.normalWS);
+                float2 startingCoords = getTriplanarCoordinate(IN.positionWS, IN.normalWS) * uint(_Density);
+                float hashValue = hash(floor(startingCoords));
 
                 half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
                 //float fresnelEffect = (1 - dot(viewDirWS, IN.normalWS));
@@ -153,11 +127,88 @@ Shader "Kabinet/ShellTexturing"
                 half4 shellBottomColor = lerp(_ShellOcclusionColor, _ShellColor, lowerShellAttenuation);
 
                 half4 outputColor = shellTopColor;
-                //half4 outputColor = half4(getTriplanarHash(IN.positionWS, IN.normalWS), 0, 1);
+                
+                
+
+
+                // Is this even tangent space?
+                float3 viewRayTS = -float3(dot(IN.tangentWS, viewDirWS), dot(IN.bitangentWS, viewDirWS), dot(IN.normalWS, viewDirWS)) * facing;
+                viewRayTS = normalize(viewRayTS);
+
+                // Algorithm from https://theshoemaker.de/posts/ray-casting-in-2d-grids
+                // Thanks :D
+                float2 dirSign = float2(1, 1);
+                float2 tileOffset = float2(1, 1);
+                if (viewRayTS.x < 0) {
+                    dirSign.x = -1;
+                    tileOffset.x = 0;
+                }
+                if (viewRayTS.y < 0) {
+                    dirSign.y = -1;
+                    tileOffset.y = 0;
+                }
+                float2 RayBias = 0.001f * dirSign;
+
+                float2 currCoords = startingCoords;
+                int2 tileCoords = floor(startingCoords);
+                float2 dT;
+                float2 ddT = dirSign / viewRayTS.xy;
+                float t = 0;
+                
+                //outputColor = float4(heightAttenuation, 0, 0, 1);
                 
                 if (hashValue < heightAttenuation) { // Less than minimum height at given pixel
-                    discard;
+                    //discard;
+
+                    int maxRaycastDistance = 4;
+                    bool RaycastHit = false;
+                    for (int i = 0; i < maxRaycastDistance; i++) {
+                        dT = ((float2)(tileCoords + tileOffset) - currCoords) / viewRayTS.xy;
+
+
+                        if (dT.x < dT.y) {
+                            t += dT.x;
+
+                            tileCoords.x += dirSign.x;
+                        }
+                        else {
+                            t += dT.y;
+
+                            tileCoords.y += dirSign.y;
+                        }
+
+                        currCoords += viewRayTS.xy * t;
+
+
+
+                        hashValue = hash(floor(startingCoords + viewRayTS.xy * t + RayBias));
+
+                        
+                        
+                        if (hashValue >= heightAttenuation) { // Ray hit something taller than this pixel's minimum height
+                            
+
+                            float hitHeight = heightAttenuation + (((viewRayTS.z * t) / _Density * 1/6) / _ShellExtent - RayBias);
+
+                            
+
+                            if (hitHeight > lowerShellAttenuation) {
+                                RaycastHit = true;
+                                float percentBetweenShells = InverseLerp(lowerShellAttenuation, heightAttenuation, hitHeight);
+                                outputColor = lerp(shellBottomColor, shellTopColor, percentBetweenShells);
+                                //outputColor = half4(hitHeight, 0, 0, 1);
+                            }
+                            
+                            break;
+                            
+                        }
+                    }
+
+                    if (!RaycastHit) {
+                        discard;
+                    }
                 }
+
                 return outputColor;
             }
 

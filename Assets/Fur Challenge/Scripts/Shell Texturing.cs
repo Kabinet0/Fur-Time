@@ -18,6 +18,7 @@ public class ShellTexturing : MonoBehaviour
 
     [SerializeField] private Color ShellColor;
 
+    [SerializeField] private Color ShellOcclusionColor;
 
     private GameObject[] ShellList;
     private MaterialPropertyBlock ShellProperties;
@@ -31,7 +32,7 @@ public class ShellTexturing : MonoBehaviour
         ShellProperties = new MaterialPropertyBlock();
         ShellMaterial = new Material(ShellShader);
 
-        Debug.Log("Generating Shells");
+        //Debug.Log("Generating Shells");
 
         for (int i = 0; i < ShellCount; i++)
         {
@@ -51,6 +52,7 @@ public class ShellTexturing : MonoBehaviour
             ShellProperties.SetFloat("_ShellExtent", ShellExtent);
             ShellProperties.SetInt("_Density", Density);
             ShellProperties.SetVector("_ShellColor", ShellColor.linear);
+            ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
 
             ShellRenderer.SetPropertyBlock(ShellProperties);
         }
@@ -74,6 +76,7 @@ public class ShellTexturing : MonoBehaviour
             ShellProperties.SetFloat("_ShellExtent", ShellExtent);
             ShellProperties.SetInt("_Density", Density);
             ShellProperties.SetVector("_ShellColor", ShellColor.linear);
+            ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
 
             ShellList[i].GetComponent<MeshRenderer>().SetPropertyBlock(ShellProperties);
         }
