@@ -8,9 +8,11 @@ public class ShellTexturing : MonoBehaviour
     [SerializeField] private Mesh ShellMesh;
     [SerializeField] private Shader ShellShader;
     [SerializeField] private bool LiveUpdate;
+    [SerializeField] private Transform Target;
 
     [Header("Properties")]
-    [SerializeField] private Transform Target;
+
+    [SerializeField] private DynamicsParameters ObjectDynamicsParameters;
 
     [SerializeField] private int ShellCount;
 
@@ -28,7 +30,7 @@ public class ShellTexturing : MonoBehaviour
     [Range(1, 5)]
     [SerializeField] private float DisplacementShaping;
 
-    [Header("Blade Settings")]
+    [Header("Strand Settings")]
 
     [SerializeField] private float Thickness;
 
@@ -61,10 +63,12 @@ public class ShellTexturing : MonoBehaviour
     //[SerializeField] private Vector3 DisplacementVector;
 
     private GameObject[] ShellList;
-    private Vector3[] ShellVelocities; 
+    [SerializeField] private Vector3[] ShellVelocities; 
     private MaterialPropertyBlock ShellProperties;
     private Material ShellMaterial;
 
+    private Vector3SecondOrderDynamics TargetFollowDynamics;
+    private Vector3 ObjectPosition;
     private float DistanceBetweenShells;
     private Vector3 LastFramePosition;
     void Start()
@@ -75,6 +79,8 @@ public class ShellTexturing : MonoBehaviour
         ShellProperties = new MaterialPropertyBlock();
         ShellMaterial = new Material(ShellShader);
         ShellVelocities = new Vector3[ShellCount];
+
+        TargetFollowDynamics = new Vector3SecondOrderDynamics(ObjectDynamicsParameters, transform.position);
 
         DistanceBetweenShells = ShellExtent / ShellCount;
         Debug.Log("Distance is: " + DistanceBetweenShells);
@@ -103,15 +109,23 @@ public class ShellTexturing : MonoBehaviour
     void Update()
     {
         Vector3 PosDelta = Target.transform.position - LastFramePosition;
-        
-        ShellVelocities[0] = PosDelta;
-        ShellList[0].transform.position = Target.transform.position;
+        ObjectPosition = TargetFollowDynamics.Evaluate(Target.transform.position);
+
+        ShellVelocities[0] = Vector3.zero;
+        ShellList[0].transform.position = ObjectPosition;
+
+        //for (int i = 1; i < ShellCount; i++)
+        //{
+        //    ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
+        //}
 
         // Pulling mechanics
         for (int i = 1; i < ShellCount; i++)
         {
             Vector3 CurrentPosition = ShellList[i].transform.position;
             float DistanceToPreviousShell = Vector3.Distance(CurrentPosition, ShellList[i - 1].transform.position);
+
+            
 
             // If too far from last shell, pull
             if (DistanceToPreviousShell > DistanceBetweenShells)
@@ -122,9 +136,11 @@ public class ShellTexturing : MonoBehaviour
             }
             else
             {
-                //ShellVelocities[i] = ShellVelocities[i] * DampingFactor;
+                
                 //ShellVelocities[i] = ShellVelocities[i] + RestoringForce * (Target.transform.position - CurrentPosition) * Time.deltaTime + PosDelta * Time.deltaTime;
             }
+            //ShellVelocities[i] = ShellVelocities[i] - new Vector3(0, 1, 0) * Time.deltaTime;
+            //ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
         }
 
         //Debug.Log(ShellVelocities[5].normalized);
@@ -156,7 +172,7 @@ public class ShellTexturing : MonoBehaviour
         ShellProperties.SetFloat("_JitterAmount", JitterAmount);
         ShellProperties.SetFloat("_WindStrength", WindStrength);
 
-        Vector3 DisplacementVector = Target.transform.position - ShellList[index].transform.position;
+        Vector3 DisplacementVector = ObjectPosition - ShellList[index].transform.position;
         float mag = DisplacementVector.magnitude;
         DisplacementVector = DisplacementVector.normalized;
 

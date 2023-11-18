@@ -6,12 +6,14 @@ Shader "Kabinet/ShellTexturing"
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        
 
         Pass
         {
             Cull Off
             ZTest Less
             ZWrite On
+            
             HLSLPROGRAM
 
             #pragma vertex vert
@@ -31,6 +33,7 @@ Shader "Kabinet/ShellTexturing"
             float4 _ShellOcclusionColor;
             float _Thickness;
             int _Density;
+
 
             float4 _DisplacementVector;
             float _DisplacementShaping;
@@ -147,6 +150,8 @@ Shader "Kabinet/ShellTexturing"
                 return OUT;
             }
 
+            
+
             // The fragment shader definition.
             half4 frag(Varyings IN, half facing : VFACE) : SV_Target
             {
@@ -188,30 +193,29 @@ Shader "Kabinet/ShellTexturing"
             ENDHLSL
         }
 
-        //Pass{
-        //    Name "DepthOnly"
-        //    Tags { "LightMode" = "DepthOnly" }
+        Pass{
+            Name "DepthOnly"
+            Tags { "LightMode" = "DepthOnly"}
 
-        //    ColorMask 0
-        //    ZWrite On
-        //    ZTest LEqual
+            ColorMask 0
+            ZWrite On
+            ZTest LEqual
 
-        //    HLSLPROGRAM
-        //    #pragma vertex DepthOnlyVertex
-        //    #pragma fragment DepthOnlyFragment
+            HLSLPROGRAM
+            // The Core.hlsl file contains definitions of frequently used HLSL
+            // macros and functions, and also contains #include references to other
+            // HLSL files (for example, Common.hlsl, SpaceTransforms.hlsl, etc.).
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"    
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
 
-        //    // Material Keywords
-        //    #pragma shader_feature _ALPHATEST_ON
-        //    #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma vertex DepthOnlyVertex
+            #pragma fragment DepthOnlyFragment
 
-        //    // GPU Instancing
-        //    #pragma multi_compile_instancing
-        //    // #pragma multi_compile _ DOTS_INSTANCING_ON
 
-        //    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-        //    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceInput.hlsl"
-        //    #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
-        //    ENDHLSL
-        //}
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+            
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
+            ENDHLSL
+        }
     }
 }
