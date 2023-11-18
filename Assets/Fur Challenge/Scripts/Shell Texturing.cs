@@ -20,6 +20,40 @@ public class ShellTexturing : MonoBehaviour
 
     [SerializeField] private Color ShellOcclusionColor;
 
+    [Range(0, 1)]
+    [SerializeField] private float DisplacementStrength;
+
+    [Range(0, 1)]
+    [SerializeField] private float NormalTension;
+
+    [Header("Blade Settings")]
+
+    [SerializeField] private float Thickness;
+
+    [Range(0, 4)]
+    [SerializeField] private float Curvature;
+
+    [Range(0, 4)]
+    [SerializeField] private float HeightAttenuation;
+
+    [Range(0, 2)]
+    [SerializeField] private float JitterAmount;
+
+    [Header("Wind")]
+
+    [Range(0, 5)]
+    [SerializeField] private float WindStrength;
+
+    [Range(0, 5)]
+    [SerializeField] private float WindSpeed;
+
+    [Range(1, 20)]
+    [SerializeField] private float WindNoiseDensity;
+
+    [Header("Vectors")]
+    [SerializeField] private Vector3 WindVector;
+    [SerializeField] private Vector3 DisplacementVector;
+
     private GameObject[] ShellList;
     private MaterialPropertyBlock ShellProperties;
     private Material ShellMaterial;
@@ -46,14 +80,7 @@ public class ShellTexturing : MonoBehaviour
             MeshRenderer ShellRenderer = ShellObject.AddComponent<MeshRenderer>();
             ShellRenderer.material = ShellMaterial;
 
-            ShellProperties.Clear();
-            ShellProperties.SetInt("_ShellIndex", i);
-            ShellProperties.SetInt("_ShellCount", ShellCount);
-            ShellProperties.SetFloat("_ShellExtent", ShellExtent);
-            ShellProperties.SetInt("_Density", Density);
-            ShellProperties.SetVector("_ShellColor", ShellColor.linear);
-            ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
-
+            PreparePropertyBlock(i);
             ShellRenderer.SetPropertyBlock(ShellProperties);
         }
     }
@@ -66,17 +93,34 @@ public class ShellTexturing : MonoBehaviour
         }
     }
 
+    void PreparePropertyBlock(int index)
+    {
+        ShellProperties.Clear();
+        ShellProperties.SetInt("_ShellIndex", index);
+        ShellProperties.SetInt("_ShellCount", ShellCount);
+        ShellProperties.SetFloat("_ShellExtent", ShellExtent);
+        ShellProperties.SetInt("_Density", Density);
+        ShellProperties.SetVector("_ShellColor", ShellColor.linear);
+        ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
+        ShellProperties.SetFloat("_Thickness", Thickness);
+        ShellProperties.SetFloat("_DisplacementStrength", DisplacementStrength);
+        ShellProperties.SetVector("_DisplacementVector", DisplacementVector);
+        ShellProperties.SetFloat("_NormalTension", NormalTension);
+
+        ShellProperties.SetFloat("_Curvature", Curvature);
+        ShellProperties.SetFloat("_DistanceAttenuation", HeightAttenuation);
+        ShellProperties.SetFloat("_JitterAmount", JitterAmount);
+        ShellProperties.SetFloat("_WindStrength", WindStrength);
+
+        Vector3 SpeedAdjustedWind = WindVector * WindSpeed;
+        ShellProperties.SetVector("_WindVector", new Vector4(SpeedAdjustedWind.x, SpeedAdjustedWind.y, SpeedAdjustedWind.z, WindNoiseDensity));
+    }
+
     void UpdateShellValues()
     {
         for (int i = 0; i < ShellCount; i++)
         {
-            ShellProperties.Clear();
-            ShellProperties.SetInt("_ShellIndex", i);
-            ShellProperties.SetInt("_ShellCount", ShellCount);
-            ShellProperties.SetFloat("_ShellExtent", ShellExtent);
-            ShellProperties.SetInt("_Density", Density);
-            ShellProperties.SetVector("_ShellColor", ShellColor.linear);
-            ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
+            PreparePropertyBlock(i);
 
             ShellList[i].GetComponent<MeshRenderer>().SetPropertyBlock(ShellProperties);
         }
