@@ -155,13 +155,14 @@ MonoBehaviour:
   ShellMesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
   ShellShader: {fileID: 4800000, guid: 61b472efcbecf1744aef9643c9715640, type: 3}
   LiveUpdate: 1
+  Target: {fileID: 0}
   ShellCount: 10
   Density: 5
   ShellExtent: 0.1
   ShellColor: {r: 0.6039216, g: 1, b: 0.44705883, a: 0}
   ShellOcclusionColor: {r: 0.4716981, g: 0.4716981, b: 0.4716981, a: 0}
   DisplacementStrength: 0
-  NormalTension: 0
+  DisplacementShaping: 0
   Thickness: 0
   Curvature: 0
   HeightAttenuation: 0
@@ -169,8 +170,9 @@ MonoBehaviour:
   WindStrength: 0
   WindSpeed: 0
   WindNoiseDensity: 0
+  DampingFactor: 0
+  RestoringForce: 0
   WindVector: {x: 0, y: 0, z: 0}
-  DisplacementVector: {x: 0, y: 0, z: 0}
 --- !u!4 &222268662
 Transform:
   m_ObjectHideFlags: 0
@@ -546,6 +548,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 759993190}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &826467266
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 826467267}
+  m_Layer: 0
+  m_Name: Target
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &826467267
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 826467266}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -729,25 +762,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e127c68bcbad7d547a45ca089e458671, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ShellMesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
+  ShellMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
   ShellShader: {fileID: 4800000, guid: c4e6178bef7e81343a11b9c4d871a7ad, type: 3}
   LiveUpdate: 1
+  Target: {fileID: 826467267}
   ShellCount: 80
-  Density: 400
+  Density: 200
   ShellExtent: 0.1
   ShellColor: {r: 0.3915094, g: 1, b: 0.51350003, a: 0}
   ShellOcclusionColor: {r: 0.4339623, g: 0.4339623, b: 0.4339623, a: 0}
-  DisplacementStrength: 0.229
-  NormalTension: 0.746
+  DisplacementStrength: 1
+  DisplacementShaping: 1
   Thickness: 1.41
   Curvature: 0.25
   HeightAttenuation: 0.2
   JitterAmount: 1
-  WindStrength: 1
+  WindStrength: 2
   WindSpeed: 0.27
   WindNoiseDensity: 4
+  DampingFactor: 0.95
+  RestoringForce: 2
   WindVector: {x: 0, y: 1, z: 0}
-  DisplacementVector: {x: 1, y: 0, z: 0}
 --- !u!4 &1103239825
 Transform:
   m_ObjectHideFlags: 0
@@ -1018,3 +1053,4 @@ SceneRoots:
   - {fileID: 222268662}
   - {fileID: 1103239825}
   - {fileID: 1477491724}
+  - {fileID: 826467267}

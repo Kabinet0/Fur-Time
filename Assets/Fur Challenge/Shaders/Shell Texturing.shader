@@ -33,8 +33,7 @@ Shader "Kabinet/ShellTexturing"
             int _Density;
 
             float4 _DisplacementVector;
-            float _DisplacementStrength;
-            float _NormalTension;
+            float _DisplacementShaping;
             float _Curvature;
             float _DistanceAttenuation;
 
@@ -118,15 +117,15 @@ Shader "Kabinet/ShellTexturing"
                 float3 PositionOS = IN.positionOS.xyz;
                 PositionOS += IN.normalOS.xyz * _ShellExtent * heightNormalized;
 
-                float NormalAlignment = saturate(dot(IN.normalOS.xyz, normalize(_DisplacementVector)));
-                float NormalAlignmentOpposite = saturate(dot(IN.normalOS.xyz, -normalize(_DisplacementVector)));
+                float NormalAlignment = saturate(dot(IN.normalOS.xyz, normalize(_DisplacementVector.xyz)));
+                //float NormalAlignmentOpposite = saturate(dot(IN.normalOS.xyz, -normalize(_DisplacementVector.xyz)));
 
-                NormalAlignment = min(NormalAlignment, NormalAlignmentOpposite);
+                //NormalAlignment = min(NormalAlignment, NormalAlignmentOpposite);
                 // Todo get a better name
-                float CurvedHeight = pow(heightNormalized, max(1, _Curvature + 1));
-                float HairDisplacementInfluence = lerp(CurvedHeight, CurvedHeight * NormalAlignment, _NormalTension);
+                //float CurvedHeight = ;
+                //float HairDisplacementInfluence = lerp(CurvedHeight, CurvedHeight * NormalAlignment, _DisplacementShaping);
 
-                PositionOS += (_DisplacementVector * _DisplacementStrength * HairDisplacementInfluence);
+                PositionOS += _DisplacementVector.xyz * _DisplacementVector.w * pow(NormalAlignment, max(1, _DisplacementShaping)) * (1 - heightNormalized);
 
                 // Fragment shader outputs
                 Varyings OUT;

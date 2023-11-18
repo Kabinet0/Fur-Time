@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,6 +10,7 @@ public class ShellTexturing : MonoBehaviour
     [SerializeField] private bool LiveUpdate;
 
     [Header("Properties")]
+    [SerializeField] private Transform Target;
 
     [SerializeField] private int ShellCount;
 
@@ -23,8 +25,8 @@ public class ShellTexturing : MonoBehaviour
     [Range(0, 1)]
     [SerializeField] private float DisplacementStrength;
 
-    [Range(0, 1)]
-    [SerializeField] private float NormalTension;
+    [Range(1, 5)]
+    [SerializeField] private float DisplacementShaping;
 
     [Header("Blade Settings")]
 
@@ -50,14 +52,21 @@ public class ShellTexturing : MonoBehaviour
     [Range(1, 20)]
     [SerializeField] private float WindNoiseDensity;
 
+    [SerializeField] private float DampingFactor;
+
+    [SerializeField] private float RestoringForce;
+
     [Header("Vectors")]
     [SerializeField] private Vector3 WindVector;
-    [SerializeField] private Vector3 DisplacementVector;
+    //[SerializeField] private Vector3 DisplacementVector;
 
     private GameObject[] ShellList;
+    private Vector3[] ShellVelocities; 
     private MaterialPropertyBlock ShellProperties;
     private Material ShellMaterial;
 
+    private float DistanceBetweenShells;
+    private Vector3 LastFramePosition;
     void Start()
     {
         ClearShells();
@@ -65,8 +74,12 @@ public class ShellTexturing : MonoBehaviour
         ShellList = new GameObject[ShellCount];
         ShellProperties = new MaterialPropertyBlock();
         ShellMaterial = new Material(ShellShader);
+        ShellVelocities = new Vector3[ShellCount];
 
-        //Debug.Log("Generating Shells");
+        DistanceBetweenShells = ShellExtent / ShellCount;
+        Debug.Log("Distance is: " + DistanceBetweenShells);
+
+        LastFramePosition = Target.transform.position;
 
         for (int i = 0; i < ShellCount; i++)
         {
@@ -82,15 +95,46 @@ public class ShellTexturing : MonoBehaviour
 
             PreparePropertyBlock(i);
             ShellRenderer.SetPropertyBlock(ShellProperties);
+
+            ShellVelocities[i] = Vector3.zero;
         }
     }
 
     void Update()
     {
+        Vector3 PosDelta = Target.transform.position - LastFramePosition;
+        
+        ShellVelocities[0] = PosDelta;
+        ShellList[0].transform.position = Target.transform.position;
+
+        // Pulling mechanics
+        for (int i = 1; i < ShellCount; i++)
+        {
+            Vector3 CurrentPosition = ShellList[i].transform.position;
+            float DistanceToPreviousShell = Vector3.Distance(CurrentPosition, ShellList[i - 1].transform.position);
+
+            // If too far from last shell, pull
+            if (DistanceToPreviousShell > DistanceBetweenShells)
+            {
+                Vector3 ShellTargetPosition = Vector3.MoveTowards(CurrentPosition, ShellList[i - 1].transform.position, DistanceToPreviousShell - DistanceBetweenShells);
+                ShellVelocities[i] = (ShellTargetPosition - CurrentPosition) * 1.001f / Time.deltaTime;
+                ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
+            }
+            else
+            {
+                //ShellVelocities[i] = ShellVelocities[i] * DampingFactor;
+                //ShellVelocities[i] = ShellVelocities[i] + RestoringForce * (Target.transform.position - CurrentPosition) * Time.deltaTime + PosDelta * Time.deltaTime;
+            }
+        }
+
+        //Debug.Log(ShellVelocities[5].normalized);
+
         if (LiveUpdate)
         {
             UpdateShellValues();
         }
+
+        LastFramePosition = Target.transform.position;
     }
 
     void PreparePropertyBlock(int index)
@@ -103,14 +147,20 @@ public class ShellTexturing : MonoBehaviour
         ShellProperties.SetVector("_ShellColor", ShellColor.linear);
         ShellProperties.SetVector("_ShellOcclusionColor", ShellOcclusionColor.linear);
         ShellProperties.SetFloat("_Thickness", Thickness);
-        ShellProperties.SetFloat("_DisplacementStrength", DisplacementStrength);
-        ShellProperties.SetVector("_DisplacementVector", DisplacementVector);
-        ShellProperties.SetFloat("_NormalTension", NormalTension);
+        //ShellProperties.SetFloat("_DisplacementStrength", DisplacementStrength);
+        
+        ShellProperties.SetFloat("_DisplacementShaping", DisplacementShaping);
 
         ShellProperties.SetFloat("_Curvature", Curvature);
         ShellProperties.SetFloat("_DistanceAttenuation", HeightAttenuation);
         ShellProperties.SetFloat("_JitterAmount", JitterAmount);
         ShellProperties.SetFloat("_WindStrength", WindStrength);
+
+        Vector3 DisplacementVector = Target.transform.position - ShellList[index].transform.position;
+        float mag = DisplacementVector.magnitude;
+        DisplacementVector = DisplacementVector.normalized;
+
+        ShellProperties.SetVector("_DisplacementVector", new Vector4(DisplacementVector.x, DisplacementVector.y, DisplacementVector.z, mag * DisplacementStrength));
 
         Vector3 SpeedAdjustedWind = WindVector * WindSpeed;
         ShellProperties.SetVector("_WindVector", new Vector4(SpeedAdjustedWind.x, SpeedAdjustedWind.y, SpeedAdjustedWind.z, WindNoiseDensity));
