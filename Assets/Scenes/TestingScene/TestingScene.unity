@@ -748,6 +748,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1103239825}
   - component: {fileID: 1103239824}
+  - component: {fileID: 1103239826}
   m_Layer: 0
   m_Name: Fur Shell Texturing
   m_TagString: Untagged
@@ -775,14 +776,14 @@ MonoBehaviour:
     Frequency: 4
     Damping: 1
     Response: 0
-  ShellCount: 80
+  ShellCount: 50
   Density: 100
   ShellExtent: 0.2
-  ShellColor: {r: 0.3915094, g: 1, b: 0.51350003, a: 0}
-  ShellOcclusionColor: {r: 0.4339623, g: 0.4339623, b: 0.4339623, a: 0}
+  ShellColor: {r: 1, g: 0.58449906, b: 0.3820755, a: 0}
+  ShellOcclusionColor: {r: 0.4245283, g: 0.27000567, b: 0.13016199, a: 0}
   DisplacementStrength: 1
   DisplacementShaping: 1
-  Thickness: 1.41
+  Thickness: 4.24
   Curvature: 0.25
   HeightAttenuation: 0.2
   JitterAmount: 1
@@ -792,7 +793,57 @@ MonoBehaviour:
   DampingFactor: 0.95
   RestoringForce: 2
   WindVector: {x: 0, y: 1, z: 0}
-  ShellVelocities: []
+  ShellVelocities:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
 --- !u!4 &1103239825
 Transform:
   m_ObjectHideFlags: 0
@@ -808,6 +859,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1103239826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103239823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a93713642edc16c42840713e206c7628, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableDebugRendering: 1
+  debugMesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  debugMaterial: {fileID: 2100000, guid: f1d0af204ac04b44e9b8b4d574fcf47a, type: 2}
+  debugDrawScale: 0.1
+  iterations: 500
+  gravity: {x: 0, y: -9, z: 0}
 --- !u!1 &1311430580
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static VerletIntegration;
 
 public class ShellTexturing : MonoBehaviour
 {
@@ -70,9 +71,13 @@ public class ShellTexturing : MonoBehaviour
     private Vector3SecondOrderDynamics TargetFollowDynamics;
     private Vector3 ObjectPosition;
     private float DistanceBetweenShells;
-    private Vector3 LastFramePosition;
+    //private Vector3 LastFramePosition;
+
+
+    private VerletIntegration verletIntegration;
     void Start()
     {
+        verletIntegration = GetComponent<VerletIntegration>();
         ClearShells();
 
         ShellList = new GameObject[ShellCount];
@@ -85,8 +90,10 @@ public class ShellTexturing : MonoBehaviour
         DistanceBetweenShells = ShellExtent / ShellCount;
         Debug.Log("Distance is: " + DistanceBetweenShells);
 
-        LastFramePosition = Target.transform.position;
+        //LastFramePosition = Target.transform.position;
 
+        List<Point> points = new List<Point>();
+        List<Connection> connections = new List<Connection>();
         for (int i = 0; i < ShellCount; i++)
         {
             GameObject ShellObject = new GameObject("Shell " + i.ToString());
@@ -103,16 +110,31 @@ public class ShellTexturing : MonoBehaviour
             ShellRenderer.SetPropertyBlock(ShellProperties);
 
             ShellVelocities[i] = Vector3.zero;
+
+            points.Add(new Point(transform.position - new Vector3(0, 0.05f * i, 0), false, 1));
         }
+
+        // Hack to fix point
+        points[0].locked = true;
+        points[0].inverseMass = 0;
+
+        for (int i = 0; i < points.Count - 1; i++)
+        {
+            connections.Add(new Connection(points[i], points[i + 1], DistanceBetweenShells));
+        }
+
+        verletIntegration.SetPointData(points);
+        verletIntegration.SetConnectionData(connections);
+        verletIntegration.OnApplyCustomConstraints += ApplyCustomConstraints;
     }
 
     void Update()
     {
-        Vector3 PosDelta = Target.transform.position - LastFramePosition;
-        ObjectPosition = TargetFollowDynamics.Evaluate(Target.transform.position);
+        //Vector3 PosDelta = Target.transform.position - LastFramePosition;
+        transform.position = TargetFollowDynamics.Evaluate(Target.transform.position);
 
-        ShellVelocities[0] = Vector3.zero;
-        ShellList[0].transform.position = ObjectPosition;
+        //ShellVelocities[0] = Vector3.zero;
+        //ShellList[0].transform.position = ObjectPosition;
 
         //for (int i = 1; i < ShellCount; i++)
         //{
@@ -120,37 +142,46 @@ public class ShellTexturing : MonoBehaviour
         //}
 
         // Pulling mechanics
-        for (int i = 1; i < ShellCount; i++)
-        {
-            Vector3 CurrentPosition = ShellList[i].transform.position;
-            float DistanceToPreviousShell = Vector3.Distance(CurrentPosition, ShellList[i - 1].transform.position);
+        //for (int i = 1; i < ShellCount; i++)
+        //{
+        //    Vector3 CurrentPosition = ShellList[i].transform.position;
+        //    float DistanceToPreviousShell = Vector3.Distance(CurrentPosition, ShellList[i - 1].transform.position);
 
-            
 
-            // If too far from last shell, pull
-            if (DistanceToPreviousShell > DistanceBetweenShells)
-            {
-                Vector3 ShellTargetPosition = Vector3.MoveTowards(CurrentPosition, ShellList[i - 1].transform.position, DistanceToPreviousShell - DistanceBetweenShells);
-                ShellVelocities[i] = (ShellTargetPosition - CurrentPosition) * 1.001f / Time.deltaTime;
-                ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
-            }
-            else
-            {
-                
-                //ShellVelocities[i] = ShellVelocities[i] + RestoringForce * (Target.transform.position - CurrentPosition) * Time.deltaTime + PosDelta * Time.deltaTime;
-            }
-            //ShellVelocities[i] = ShellVelocities[i] - new Vector3(0, 1, 0) * Time.deltaTime;
-            //ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
-        }
+
+        //    // If too far from last shell, pull
+        //    if (DistanceToPreviousShell > DistanceBetweenShells)
+        //    {
+        //        Vector3 ShellTargetPosition = Vector3.MoveTowards(CurrentPosition, ShellList[i - 1].transform.position, DistanceToPreviousShell - DistanceBetweenShells);
+        //        ShellVelocities[i] = (ShellTargetPosition - CurrentPosition) * 1.001f / Time.deltaTime;
+        //        ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
+        //    }
+        //    else
+        //    {
+
+        //        //ShellVelocities[i] = ShellVelocities[i] + RestoringForce * (Target.transform.position - CurrentPosition) * Time.deltaTime + PosDelta * Time.deltaTime;
+        //    }
+        //    //ShellVelocities[i] = ShellVelocities[i] - new Vector3(0, 1, 0) * Time.deltaTime;
+        //    //ShellList[i].transform.position = ShellList[i].transform.position + ShellVelocities[i] * Time.deltaTime;
+        //}
 
         //Debug.Log(ShellVelocities[5].normalized);
-
+        var points = verletIntegration.GetPointData();
+        for (int i = 0; i < points.Length; i++)
+        {
+            ShellList[i].transform.position = points[i].position;
+        }
         if (LiveUpdate)
         {
             UpdateShellValues();
         }
 
-        LastFramePosition = Target.transform.position;
+        //LastFramePosition = Target.transform.position;
+    }
+
+    private void FixedUpdate()
+    {
+        verletIntegration.Simulate();
     }
 
     void PreparePropertyBlock(int index)
@@ -172,7 +203,7 @@ public class ShellTexturing : MonoBehaviour
         ShellProperties.SetFloat("_JitterAmount", JitterAmount);
         ShellProperties.SetFloat("_WindStrength", WindStrength);
 
-        Vector3 DisplacementVector = ObjectPosition - ShellList[index].transform.position;
+        Vector3 DisplacementVector = transform.position - ShellList[index].transform.position;
         float mag = DisplacementVector.magnitude;
         DisplacementVector = DisplacementVector.normalized;
 
@@ -202,5 +233,10 @@ public class ShellTexturing : MonoBehaviour
             }
             ShellList = null;
         }
+    }
+
+    void ApplyCustomConstraints(ref Point[] points, ref Connection[] connections)
+    {
+        points[0].position = transform.position;
     }
 }
